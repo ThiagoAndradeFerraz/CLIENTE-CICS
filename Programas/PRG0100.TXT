@@ -1,0 +1,179 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PRG0100.
+       AUTHOR. THIAGO FERRAZ.
+       DATE-WRITTEN. 11/2022.
+      *
+      * ---------------------------------------------------
+      * PROGRAMA QUE CUIDA DA EXIBICAO DAS TELAS DE LOGIN
+      * E MENU DE APLICACOES.
+      *
+      * MAPSET USADO: MST0100
+      *
+      * MAPAS USADOS: MAP0101 - MAPA DE LOGIN
+      *               MAP0102 - MAPA DE MENU
+      * ---------------------------------------------------
+      *
+       ENVIRONMENT DIVISION.
+      *
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+
+       COPY DFHBMSCA.
+       COPY DFHAID.
+
+       COPY MST0100.
+
+       01 WS-COMMAREA.
+           02 COMM-FLAG-TELA PIC X(01).
+              88 TELA-LOGIN  VALUE '1'.
+              88 TELA-MENU   VALUE '2'.
+
+           02 COMM-FLAG-ESTADO PIC X(01).
+              88 INICIO-PROG VALUE 'Y'.
+
+      *
+       01 WS-CICS.
+           02 WS-RESP-CODE PIC S9(08) COMP.
+      *
+       01 WS-LOGIN.
+           02 WS-USER      PIC X(13).
+           02 WS-SENHA     PIC X(13).
+      *
+       01 WS-DT-HORA.
+           02 WS-TSTAMP PIC S9(14) COMP.
+           02 WS-DT-FORMATADA.
+              03 WS-DATA PIC X(10).
+              03 FILLER  PIC X(03) VALUE ' - '.
+              03 WS-HORA PIC X(05).
+      *
+       01 WS-NOTIFICACAO PIC X(22).
+           88 MSG-VAZIO          VALUE ' '.
+           88 MSG-LOGIN-SUCESO   VALUE 'SEJA BEM VINDO'.
+           88 MSG-LOGIN-INVALIDO VALUE 'LOGIN NAO ACEITO'.
+           88 MSG-OP-INVALIDA    VALUE 'OPCAO INVALIDA'.
+           88 MSG-APP-FIM        VALUE 'APLICACAO ENCERRADA'.
+
+       LINKAGE SECTION.
+       01 DFHCOMMAREA PIC X(02).
+
+       PROCEDURE DIVISION.
+
+       R0000-INICIO SECTION.
+
+           MOVE DFHCOMMAREA TO WS-COMMAREA
+
+           IF EIBCALEN EQUAL ZEROS
+              MOVE LOW-VALUES TO MAP0101O
+              PERFORM R0101-SEND-MAP-LOGIN
+
+              SET TELA-LOGIN TO TRUE
+      *       SET INICIO-PROG TO FALSE
+           ELSE
+
+              IF INICIO-PROG
+                 EVALUATE TRUE
+                   WHEN TELA-LOGIN
+                     MOVE LOW-VALUES TO MAP0101O
+                     PERFORM R0101-SEND-MAP-LOGIN
+
+                   WHEN TELA-MENU
+                     MOVE LOW-VALUES TO MAP0102O
+                     PERFORM R0102-SEND-MAP-MENU
+
+      *            WHEN OTHER
+      *              TODO -> TRATAMENTO DE ERRO
+                 END-EVALUATE
+              ELSE
+                 EVALUATE EIBAID
+                   WHEN DFHPF3
+                     PERFORM R0900-SAIR
+
+                   WHEN DFHENTER
+      *              TODO -> TRATAR LOGIN OU VAZIO...
+                     SET MSG-VAZIO TO TRUE
+                     PERFORM R0102-NOTIFICAR
+                   WHEN OTHER
+                     SET MSG-OP-INVALIDA TO TRUE
+                     PERFORM R0102-NOTIFICAR
+                 END-EVALUATE
+              END-IF
+           END-IF.
+
+           EXEC CICS
+             RETURN TRANSID('KAD1') COMMAREA(WS-COMMAREA)
+           END-EXEC.
+
+           GOBACK.
+      *
+      *
+       R0001-OBTER-HORA SECTION.
+
+           EXEC CICS
+             ASKTIME
+             ABSTIME(WS-TSTAMP)
+           END-EXEC.
+
+           EXEC CICS
+             FORMATTIME
+             ABSTIME(WS-TSTAMP)
+             DDMMYYYY(WS-DATA)
+             DATESEP('/')
+             TIME(WS-HORA)
+             TIMESEP(':')
+           END-EXEC.
+      *
+      *
+       R0102-NOTIFICAR SECTION.
+
+           IF TELA-LOGIN
+              MOVE LOW-VALUES TO MAP0101O
+              MOVE WS-NOTIFICACAO TO NOTIF1O
+              PERFORM R0101-SEND-MAP-LOGIN
+           ELSE
+              MOVE LOW-VALUES TO MAP0102O
+              MOVE WS-NOTIFICACAO TO NOTIF2O
+              PERFORM R0102-SEND-MAP-MENU
+           END-IF.
+      *
+      *
+       R0101-SEND-MAP-LOGIN SECTION.
+
+           PERFORM R0001-OBTER-HORA
+           MOVE WS-DT-FORMATADA TO DTHORA1O.
+
+           EXEC CICS
+             SEND MAP('MAP0101') MAPSET('MST0100')
+               FROM(MAP0101O)
+               ERASE
+               RESP(WS-RESP-CODE)
+           END-EXEC.
+      *
+      *
+       R0102-SEND-MAP-MENU SECTION.
+
+           PERFORM R0001-OBTER-HORA
+           MOVE WS-DT-FORMATADA TO DTHORA2O.
+
+           EXEC CICS
+             SEND MAP('MAP0102') MAPSET('MST0100')
+               FROM(MAP0102O)
+               ERASE
+               RESP(WS-RESP-CODE)
+           END-EXEC.
+
+      *
+      *
+       R0900-SAIR SECTION.
+
+           SET MSG-APP-FIM TO TRUE
+
+           EXEC CICS
+              SEND TEXT FROM (WS-NOTIFICACAO) ERASE
+           END-EXEC.
+
+           EXEC CICS
+              SEND CONTROL FREEKB
+           END-EXEC.
+
+           EXEC CICS RETURN END-EXEC.
+

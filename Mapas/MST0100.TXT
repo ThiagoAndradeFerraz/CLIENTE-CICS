@@ -1,0 +1,82 @@
+***********************************************************************
+* MAPSET DA APLICACAO PRG0100
+***********************************************************************
+        PRINT NOGEN
+MST0100 DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,                    X
+               TERM=ALL,STORAGE=AUTO,MAPATTS=(COLOR,HILIGHT),          X
+               TIOAPFX=YES,CTRL=(FREEKB,FRSET)
+***********************************************************************
+*
+* MAPA DO HEADER USADO PELA TELA DE LOGIN E MENU DE APPS
+*
+***********************************************************************
+MAP0101 DFHMDI SIZE=(24,80),LINE=1,COLUMN=1,JUSTIFY=LEFT
+*
+*       NOTIFICACAO
+NOTIF1  DFHMDF POS=(01,02),LENGTH=22,ATTRB=(ASKIP,BRT)
+*
+*       CAMPO DE EXIBICAO DE DATA E HORARIO
+DTHORA1 DFHMDF POS=(01,62),LENGTH=18,INITIAL='DD/MM/AAAA - HH:MM',     X
+               ATTRB=(ASKIP,BRT)
+*
+*       LABEL LOGO
+        DFHMDF POS=(06,29),INITIAL='BANCO ABSTERGO - LOGIN',           X
+               LENGTH=22,ATTRB=(ASKIP,BRT)
+*
+*       USUARIO
+        DFHMDF POS=(08,29),INITIAL='USUARIO:',                         X
+               LENGTH=08,ATTRB=(ASKIP,NORM)
+USER    DFHMDF POS=(08,38),                                            X
+               LENGTH=13,ATTRB=(UNPROT,NORM,IC),HILIGHT=UNDERLINE
+        DFHMDF POS=(08,52),INITIAL=' ',LENGTH=1,ATTRB=ASKIP
+*
+*       SENHA
+        DFHMDF POS=(09,29),INITIAL='SENHA  :',                         X
+               LENGTH=08,ATTRB=(ASKIP,NORM)
+SENHA   DFHMDF POS=(09,38),INITIAL='             ',                    X
+               LENGTH=13,ATTRB=(UNPROT,DRK),HILIGHT=UNDERLINE
+        DFHMDF POS=(09,52),INITIAL=' ',LENGTH=1,ATTRB=PROT
+*
+*       LABEL COMANDOS
+        DFHMDF POS=(24,02),INITIAL='PF3 - SAIR',                       X
+               LENGTH=10,ATTRB=(ASKIP,BRT)
+        DFHMDF POS=(24,15),INITIAL='ENTER - ENTRAR',                   X
+               LENGTH=14,ATTRB=(ASKIP,BRT)
+***********************************************************************
+*
+* MAPA DA TELA DE MENU
+*
+***********************************************************************
+MAP0102 DFHMDI SIZE=(24,80),LINE=1,COLUMN=1,JUSTIFY=LEFT
+        DFHMDF POS=(04,02),INITIAL='APLICACOES',                       X
+               LENGTH=10,ATTRB=(ASKIP,BRT)
+*
+*       NOTIFICACAO
+NOTIF2  DFHMDF POS=(01,02),LENGTH=22,ATTRB=(ASKIP,BRT)
+*
+*       CAMPO DE EXIBICAO DE DATA E HORARIO
+DTHORA2 DFHMDF POS=(01,62),LENGTH=18,INITIAL='DD/MM/AAAA - HH:MM',     X
+               ATTRB=(ASKIP,BRT)
+*----------------------------------------------------------------------
+        DFHMDF POS=(07,02),INITIAL='1 - CADASTRO DE CLIENTES',         X
+               LENGTH=25,ATTRB=(ASKIP,BRT)
+*----------------------------------------------------------------------
+        DFHMDF POS=(08,02),INITIAL='2 - CONSULTA DE CLIENTES',         X
+               LENGTH=25,ATTRB=(ASKIP,BRT)
+*----------------------------------------------------------------------
+        DFHMDF POS=(21,02),INITIAL='APLICACAO:',                       X
+               LENGTH=10,ATTRB=(ASKIP,BRT)
+*
+*       CAMPO DE SELECAO DE APP
+APPNBR  DFHMDF POS=(21,14),LENGTH=03,PICIN='9(03)',PICOUT='9(03)',     X
+               ATTRB=(UNPROT,NORM,NORM,IC),HILIGHT=UNDERLINE
+        DFHMDF POS=(21,18),INITIAL=' ',LENGTH=1,ATTRB=ASKIP
+*
+*       LABEL COMANDOS
+        DFHMDF POS=(24,02),INITIAL='PF3 - SAIR',                       X
+               LENGTH=10,ATTRB=(ASKIP,BRT)
+        DFHMDF POS=(24,15),INITIAL='ENTER - ENTRAR',                   X
+               LENGTH=14,ATTRB=(ASKIP,BRT)
+***********************************************************************
+        DFHMSD TYPE=FINAL
+        END
